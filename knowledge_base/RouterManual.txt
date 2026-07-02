@@ -1,0 +1,11 @@
+Router Manual
+
+Red Light
+
+Restart router
+
+Check WAN cable
+
+Wait 2 minutes
+
+Factory reset if issue persists.
