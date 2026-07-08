@@ -1,99 +1,111 @@
 import streamlit as st
 from agents.orchestrator import orchestrate
+import traceback
+
+try:
+    import voice_input
+    speech_to_text = voice_input.speech_to_text
+except Exception:
+    traceback.print_exc()
+    raise
+from voice import speak
+import tempfile
 
 st.set_page_config(
     page_title="Customer Support AI",
     page_icon="🤖",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
-
-# ------------------------
-# Session State
-# ------------------------
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ------------------------
-# Sidebar
-# ------------------------
+# ---------------- Sidebar ---------------- #
 
 with st.sidebar:
 
     st.title("🤖 Support AI")
 
-    st.markdown("---")
+    st.divider()
 
-    st.subheader("Capabilities")
-
-    st.success("✔ Product Information")
-    st.success("✔ Technical Troubleshooting")
-    st.success("✔ FAQ Assistance")
-    st.success("✔ Voice Support")
+    st.success("✔ Multi-Agent")
+    st.success("✔ RAG")
+    st.success("✔ Voice")
     st.success("✔ Human Escalation")
 
-    st.markdown("---")
-
-    st.subheader("Quick Actions")
-
-    if st.button("📦 Product Information"):
-        st.session_state.messages.append(
-            {"role":"user","content":"Tell me about your products"}
-        )
-
-    if st.button("💳 Refund Policy"):
-        st.session_state.messages.append(
-            {"role":"user","content":"What is your refund policy?"}
-        )
-
-    if st.button("🌐 Internet Issues"):
-        st.session_state.messages.append(
-            {"role":"user","content":"My internet is not working"}
-        )
+    st.divider()
 
     if st.button("🧹 Clear Chat"):
-        st.session_state.messages=[]
+        st.session_state.messages = []
         st.rerun()
 
-# ------------------------
-# Header
-# ------------------------
+# ---------------- Header ---------------- #
 
 st.title("🤖 Customer Support AI Agent")
 
 st.caption(
-    "AI-powered customer support with RAG, Multi-Agent Workflow, Voice Support & Human Escalation"
+    "Multi-Agent • RAG • Voice • ElevenLabs • Human Escalation"
 )
 
 st.divider()
 
-# ------------------------
-# Chat History
-# ------------------------
+# ---------------- Chat ---------------- #
 
 for msg in st.session_state.messages:
 
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# ------------------------
-# Bottom Input Area
-# ------------------------
+# =====================================================
+# VOICE INPUT
+# =====================================================
 
-col1,col2=st.columns([8,1])
+st.subheader("🎤 Voice Assistant")
 
-with col1:
+audio = st.audio_input("Speak")
 
-    prompt=st.chat_input("Ask me anything...")
+if audio is not None:
 
-with col2:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
+        f.write(audio.read())
+        audio_path = f.name
 
-    st.button("🎤")
+    with st.spinner("🎤 Converting Speech..."):
+        prompt = speech_to_text(audio_path)
 
-# ------------------------
-# Handle Input
-# ------------------------
+    st.session_state.messages.append(
+        {
+            "role":"user",
+            "content":prompt
+        }
+    )
+
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.spinner("🤖 Thinking..."):
+
+        response = orchestrate(prompt)
+
+    st.session_state.messages.append(
+        {
+            "role":"assistant",
+            "content":response
+        }
+    )
+
+    with st.chat_message("assistant"):
+        st.markdown(response)
+
+    audio_file = speak(response)
+
+    st.audio(audio_file)
+
+# =====================================================
+# TEXT CHAT
+# =====================================================
+
+prompt = st.chat_input("Ask me anything...")
 
 if prompt:
 
@@ -120,3 +132,7 @@ if prompt:
 
     with st.chat_message("assistant"):
         st.markdown(response)
+
+    audio_file = speak(response)
+
+    st.audio(audio_file)

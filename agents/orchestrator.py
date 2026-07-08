@@ -10,10 +10,13 @@ def orchestrate(user_query):
     if intent == "rag":
         return rag_agent(user_query)
 
-    elif intent == "troubleshooting":
+    elif intent == "troubleshoot":
         return troubleshooting_agent(user_query)
 
-    elif intent == "escalation":
+    elif intent == "escalate":
         return escalation_agent(user_query)
+
+    elif intent == "faq":
+        return rag_agent(user_query)
 
     return "Sorry, I couldn't understand your request."

@@ -1,20 +1,27 @@
-def detect_intent(user_query):
-    query = user_query.lower()
+def detect_intent(query):
+    query = query.lower()
 
-    # Escalation
-    if any(word in query for word in [
-        "human", "agent", "representative", "manager",
-        "complaint", "escalate", "support person"
-    ]):
-        return "escalation"
+    troubleshooting_keywords = [
+        "wifi",
+        "wi-fi",
+        "internet",
+        "router",
+        "network",
+        "connection",
+        "not working",
+        "slow",
+        "disconnect",
+        "offline",
+        "signal",
+    ]
 
-    # Troubleshooting
-    if any(word in query for word in [
-        "not working", "issue", "problem", "error",
-        "failed", "can't", "cannot", "red light",
-        "slow", "internet", "router"
-    ]):
-        return "troubleshooting"
+    if any(word in query for word in troubleshooting_keywords):
+        return "troubleshoot"
 
-    # Default
+    if any(word in query for word in ["refund", "policy", "price", "product"]):
+        return "faq"
+
+    if any(word in query for word in ["human", "agent", "support", "complaint"]):
+        return "escalate"
+
     return "rag"
